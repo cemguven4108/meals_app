@@ -1,5 +1,7 @@
+import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
 
+@immutable
 class Meal {
   final String id;
   final String categoryId;

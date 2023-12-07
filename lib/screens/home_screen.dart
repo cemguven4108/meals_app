@@ -1,61 +1,114 @@
 import 'package:flutter/material.dart';
-import 'package:meals_app/data/meal_data.dart';
-import 'package:meals_app/models/meal_model.dart';
-import 'package:meals_app/services/category_service.dart';
-import 'package:meals_app/services/meal_service.dart';
-import 'package:meals_app/widgets/meal_view.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:meals_app/enums/navigations.dart';
+import 'package:meals_app/models/category_model.dart';
+import 'package:meals_app/providers/category_provider.dart';
+import 'package:meals_app/widgets/category_card.dart';
+import 'package:meals_app/widgets/custom_gridview.dart';
 
-class HomeScreen extends StatefulWidget {
+class HomeScreen extends ConsumerWidget {
   const HomeScreen({
     super.key,
   });
 
-  @override
-  State<HomeScreen> createState() => _HomeScreenState();
-}
-
-class _HomeScreenState extends State<HomeScreen> {
-  List<Meal> _mealList = MealService().findAll();
-
-  List<Widget> buildCategories() {
-    final categoryService = CategoryService();
-    final categoryList = categoryService.findAll();
-
-    return categoryList.map((category) {
+  List<Widget> buildNavigations(BuildContext context) {
+    return Navigations.values.map((navigation) {
       return Card(
         child: ListTile(
           onTap: () {
-            setState(() {
-              _mealList = MealService().findAllByCategoryId(category.id);
-            });
-            Navigator.of(context).pop();
+            Navigator.of(context).pushNamed(navigation.key);
           },
-          title: Text(category.name),
+          title: Text(navigation.name),
         ),
       );
     }).toList();
   }
 
+  Future buildAddDialog(BuildContext context, void Function(Category) addFunc) {
+    final nameController = TextEditingController();
+
+    return showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text("Add Category"),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: <Widget>[
+              TextField(
+                controller: nameController,
+                decoration: const InputDecoration(
+                  labelText: "Enter name here...",
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text("Cancel"),
+            ),
+            TextButton(
+              onPressed: () {
+                if (nameController.text != "") {
+                  addFunc(Category(name: nameController.text));
+                  Navigator.of(context).pop();
+                }
+              },
+              child: const Text("Save"),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final categoryList = ref.watch(categoryProvider);
+
     return Scaffold(
       appBar: AppBar(
         centerTitle: true,
         title: const Text("Meals App"),
       ),
       drawer: Drawer(
-
+        width: 200,
         child: ListView(
           children: [
             const DrawerHeader(
-              child: Text("Categories"),
+              child: Center(
+                child: Text(
+                  "Navigation",
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w400,
+                    fontSize: 20,
+                  ),
+                ),
+              ),
             ),
-            ...buildCategories(),
+            ...buildNavigations(context),
           ],
         ),
       ),
-      body: MealView(
-        mealList: _mealList,
+      body: Consumer(
+        builder: (context, ref, child) {
+          return CustomGridview(
+            children: [
+              ...categoryList.map((category) {
+                return CategoryCard(category: category);
+              }),
+            ],
+          );
+        },
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () => buildAddDialog(
+          context,
+          ref.watch(categoryProvider.notifier).addCategory,
+        ),
+        child: const Icon(Icons.add),
       ),
     );
   }

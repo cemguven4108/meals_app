@@ -10,19 +10,19 @@ final mealList = [
   ),
   Meal(
     categoryId: categoryList[0].id,
-    name: "Mercimek Corbasi",
+    name: "Domates Corbasi",
     imageUrl: "",
     ingredients: [],
   ),
   Meal(
     categoryId: categoryList[0].id,
-    name: "Mercimek Corbasi",
+    name: "Yogurt Corbasi",
     imageUrl: "",
     ingredients: [],
   ),
   Meal(
     categoryId: categoryList[0].id,
-    name: "Mercimek Corbasi",
+    name: "Kemik Corbasi",
     imageUrl: "",
     ingredients: [],
   ),
