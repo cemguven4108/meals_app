@@ -24,7 +24,7 @@ class HomeScreen extends ConsumerWidget {
     }).toList();
   }
 
-  Future buildAddDialog(BuildContext context, void Function(Category) addFunc) {
+  Future buildAddDialog(BuildContext context, WidgetRef ref) {
     final nameController = TextEditingController();
 
     return showDialog(
@@ -51,7 +51,9 @@ class HomeScreen extends ConsumerWidget {
             TextButton(
               onPressed: () {
                 if (nameController.text != "") {
-                  addFunc(Category(name: nameController.text));
+                  ref.watch(categoryProvider.notifier).addCategory(
+                        Category(name: nameController.text),
+                      );
                   Navigator.of(context).pop();
                 }
               },
@@ -97,7 +99,26 @@ class HomeScreen extends ConsumerWidget {
           return CustomGridview(
             children: [
               ...categoryList.map((category) {
-                return CategoryCard(category: category);
+                return Dismissible(
+                  key: ValueKey(category.id),
+                  child: CategoryCard(category: category),
+                  onDismissed: (_) {
+                    final categoryRef = ref.watch(categoryProvider.notifier);
+                    categoryRef.delete(category);
+
+                    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                      behavior: SnackBarBehavior.fixed,
+                      content: Text("${category.name} Removed"),
+                      action: SnackBarAction(
+                        label: "Undo",
+                        onPressed: () {
+                          //can't insert at index for now, ToDo for that
+                          categoryRef.addCategory(category);
+                        },
+                      ),
+                    ));
+                  },
+                );
               }),
             ],
           );
@@ -106,7 +127,7 @@ class HomeScreen extends ConsumerWidget {
       floatingActionButton: FloatingActionButton(
         onPressed: () => buildAddDialog(
           context,
-          ref.watch(categoryProvider.notifier).addCategory,
+          ref,
         ),
         child: const Icon(Icons.add),
       ),

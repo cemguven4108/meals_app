@@ -25,10 +25,14 @@ class CategoryNotifier extends StateNotifier<List<Category>> {
   //   }).toList();
   // }
 
-  // void delete(Category category) {
-  //   final isValid = state.any((element) => element.id == category.id);
-  //   if (isValid) {
-  //     state = state.where((element) => element.id != category.id).toList();
-  //   }
-  // }
+  void delete(Category category) {
+    final isValid = state.any((element) => element.id == category.id);
+    if (isValid) {
+      state = state.where((element) => element.id != category.id).toList();
+    }
+  }
+
+  int indexOf(Category category) {
+    return state.indexOf(category);
+  }
 }
